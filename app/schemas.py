@@ -32,6 +32,7 @@ class LocationUpdate(BaseModel):
 class LocationRead(LocationBase):
     id: int
     created_at: datetime
+    movies: list["MovieBase"] = []
 
     model_config = {"from_attributes": True}
 

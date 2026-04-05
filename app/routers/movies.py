@@ -9,8 +9,8 @@ router = APIRouter(prefix="/movies", tags=["movies"])
 
 
 @router.get("/", response_model=list[schemas.MovieRead])
-def list_movies(genre: Optional[str] = None, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return crud.get_movies(db, genre=genre, skip=skip, limit=limit)
+def list_movies(title: Optional[str] = None, genre: Optional[str] = None, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    return crud.get_movies(db, title=title, genre=genre, skip=skip, limit=limit)
 
 
 @router.post("/", response_model=schemas.MovieRead, status_code=201)

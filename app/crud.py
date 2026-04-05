@@ -4,8 +4,10 @@ from . import models, schemas
 
 # ── Movies ────────────────────────────────────────────────────────────────────
 
-def get_movies(db: Session, genre: str | None = None, skip: int = 0, limit: int = 100):
+def get_movies(db: Session, title: str | None = None, genre: str | None = None, skip: int = 0, limit: int = 100):
     q = db.query(models.Movie)
+    if title:
+        q = q.filter(models.Movie.title.ilike(f"%{title}%"))
     if genre:
         q = q.filter(models.Movie.genre.ilike(f"%{genre}%"))
     return q.offset(skip).limit(limit).all()
