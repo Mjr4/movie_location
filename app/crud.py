@@ -99,6 +99,15 @@ def delete_location(db: Session, location_id: int):
 def get_movie_locations(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.MovieLocation).offset(skip).limit(limit).all()
 
+def get_locations_by_movie(db: Session, movie_id: int, skip: int = 0, limit: int = 100):
+    return (
+        db.query(models.Location)
+        .join(models.MovieLocation, models.MovieLocation.location_id == models.Location.id)
+        .filter(models.MovieLocation.movie_id == movie_id)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 def create_movie_location(db: Session, data: schemas.MovieLocationCreate):
     db_ml = models.MovieLocation(**data.model_dump())

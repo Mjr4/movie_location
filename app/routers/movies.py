@@ -25,6 +25,12 @@ def get_movie(movie_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Película no encontrada")
     return db_movie
 
+@router.get("/{movie_id}/locations", response_model=list[schemas.LocationRead])
+def list_movie_locations(movie_id: int, db: Session = Depends(get_db)):
+    movie = crud.get_movie(db, movie_id)
+    if not movie:
+        raise HTTPException(status_code=404, detail="Película no encontrada")
+    return crud.get_locations_by_movie(db, movie_id)
 
 @router.put("/{movie_id}", response_model=schemas.MovieRead)
 def update_movie(movie_id: int, movie: schemas.MovieUpdate, db: Session = Depends(get_db)):
