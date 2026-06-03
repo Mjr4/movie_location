@@ -65,7 +65,7 @@ def test_update_movie_not_found(client):
 def test_delete_movie(client):
     movie_id = make_movie(client).json()["id"]
     r = client.delete(f"/movies/{movie_id}")
-    assert r.status_code == 200
+    assert r.status_code == 204
     assert client.get(f"/movies/{movie_id}").status_code == 404
 
 

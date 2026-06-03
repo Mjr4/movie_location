@@ -58,7 +58,7 @@ def test_delete_movie_location(client):
     movie_id, loc_id = _create_both(client)
     ml_id = client.post("/movie-locations/", json={"movie_id": movie_id, "location_id": loc_id}).json()["id"]
     r = client.delete(f"/movie-locations/{ml_id}")
-    assert r.status_code == 200
+    assert r.status_code == 204
     assert client.get("/movie-locations/").json() == []
 
 

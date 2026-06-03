@@ -40,9 +40,8 @@ def update_movie(movie_id: int, movie: schemas.MovieUpdate, db: Session = Depend
     return db_movie
 
 
-@router.delete("/{movie_id}", response_model=schemas.MovieRead)
+@router.delete("/{movie_id}", status_code=204)
 def delete_movie(movie_id: int, db: Session = Depends(get_db)):
     db_movie = crud.delete_movie(db, movie_id)
     if not db_movie:
         raise HTTPException(status_code=404, detail="Película no encontrada")
-    return db_movie

@@ -60,7 +60,7 @@ def test_update_location_not_found(client):
 def test_delete_location(client):
     loc_id = make_location(client).json()["id"]
     r = client.delete(f"/locations/{loc_id}")
-    assert r.status_code == 200
+    assert r.status_code == 204
     assert client.get(f"/locations/{loc_id}").status_code == 404
 
 

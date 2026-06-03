@@ -42,9 +42,8 @@ def update_location(location_id: int, location: schemas.LocationUpdate, db: Sess
     return db_location
 
 
-@router.delete("/{location_id}", response_model=schemas.LocationRead)
+@router.delete("/{location_id}", status_code=204)
 def delete_location(location_id: int, db: Session = Depends(get_db)):
     db_location = crud.delete_location(db, location_id)
     if not db_location:
         raise HTTPException(status_code=404, detail="Locación no encontrada")
-    return db_location

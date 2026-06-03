@@ -21,9 +21,8 @@ def create_movie_location(data: schemas.MovieLocationCreate, db: Session = Depen
     return crud.create_movie_location(db, data)
 
 
-@router.delete("/{movie_location_id}", response_model=schemas.MovieLocationRead)
+@router.delete("/{movie_location_id}", status_code=204)
 def delete_movie_location(movie_location_id: int, db: Session = Depends(get_db)):
     db_ml = crud.delete_movie_location(db, movie_location_id)
     if not db_ml:
         raise HTTPException(status_code=404, detail="Asociación no encontrada")
-    return db_ml
