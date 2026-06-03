@@ -12,11 +12,13 @@ router = APIRouter(prefix="/locations", tags=["locations"])
 def list_locations(
     city: Optional[str] = None,
     country: Optional[str] = None,
+    type: Optional[str] = None,  # Filtro por tipo de locación (exterior/interior/mixto)
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
 ):
-    return crud.get_locations(db, city=city, country=country, skip=skip, limit=limit)
+    # Retorna listado de locaciones con filtros opcionales
+    return crud.get_locations(db, city=city, country=country, type=type, skip=skip, limit=limit)
 
 
 @router.post("/", response_model=schemas.LocationRead, status_code=201)

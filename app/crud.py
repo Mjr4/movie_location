@@ -51,14 +51,19 @@ def get_locations(
     db: Session,
     city: str | None = None,
     country: str | None = None,
+    type: str | None = None,
     skip: int = 0,
     limit: int = 100,
 ):
+    # Buscar locaciones con filtros opcionales (city, country, type)
     q = db.query(models.Location)
     if city:
         q = q.filter(models.Location.city.ilike(f"%{city}%"))
     if country:
         q = q.filter(models.Location.country.ilike(f"%{country}%"))
+    if type:
+        # Filtrar por tipo de locación (exterior, interior, mixto)
+        q = q.filter(models.Location.location_type.ilike(f"%{type}%"))
     return q.offset(skip).limit(limit).all()
 
 
