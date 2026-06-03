@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from .database import engine
@@ -33,6 +34,20 @@ async def sqlalchemy_error_handler(request: Request, exc: SQLAlchemyError):
     return JSONResponse(
         status_code=503,
         content={"detail": "Error en la base de datos, intente nuevamente"},
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(request: Request, exc: RequestValidationError):
+    # Extraer detalles del error de validación
+    errors = []
+    for error in exc.errors():
+        field = ".".join(str(loc) for loc in error["loc"][1:])  # Ignorar "body"
+        errors.append({"field": field, "message": error["msg"]})
+
+    return JSONResponse(
+        status_code=400,
+        content={"detail": "Validación fallida", "errors": errors},
     )
 
 
