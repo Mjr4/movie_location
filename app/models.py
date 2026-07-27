@@ -1,8 +1,41 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Table, UniqueConstraint
 from sqlalchemy.orm import relationship, declarative_base
 from datetime import datetime
 
 Base = declarative_base()
+
+
+movie_director = Table(
+    "movie_director",
+    Base.metadata,
+    Column("movie_id", Integer, ForeignKey("movies.id"), primary_key=True),
+    Column("director_id", Integer, ForeignKey("directors.id"), primary_key=True),
+)
+
+movie_genre = Table(
+    "movie_genre",
+    Base.metadata,
+    Column("movie_id", Integer, ForeignKey("movies.id"), primary_key=True),
+    Column("genre_id", Integer, ForeignKey("genres.id"), primary_key=True),
+)
+
+
+class Director(Base):
+    __tablename__ = "directors"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True, index=True)
+
+    movies = relationship("Movie", secondary=movie_director, back_populates="directors")
+
+
+class Genre(Base):
+    __tablename__ = "genres"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True, index=True)
+
+    movies = relationship("Movie", secondary=movie_genre, back_populates="genres")
 
 
 class Movie(Base):
@@ -11,10 +44,11 @@ class Movie(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String, unique=True, index=True)
     year = Column(Integer)
-    director = Column(String)
-    genre = Column(String)
-    imdb_id = Column(String, nullable=True)
+    imdb_id = Column(String, unique=True, index=True, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    directors = relationship("Director", secondary=movie_director, back_populates="movies")
+    genres = relationship("Genre", secondary=movie_genre, back_populates="movies")
 
     locations = relationship(
         "Location",
@@ -34,6 +68,7 @@ class Location(Base):
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     description = Column(String, nullable=True)
+    source_text = Column(String, unique=True, nullable=True)  # string crudo del CSV de origen (clave del loader)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     movies = relationship(

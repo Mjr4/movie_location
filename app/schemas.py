@@ -32,7 +32,23 @@ class LocationUpdate(BaseModel):
 class LocationRead(LocationBase):
     id: int
     created_at: datetime
-    movies: list["MovieBase"] = []
+    movies: list["MovieSummary"] = []
+
+    model_config = {"from_attributes": True}
+
+
+# ── Director / Genre ──────────────────────────────────────────────────────────
+
+class DirectorRead(BaseModel):
+    id: int
+    name: str
+
+    model_config = {"from_attributes": True}
+
+
+class GenreRead(BaseModel):
+    id: int
+    name: str
 
     model_config = {"from_attributes": True}
 
@@ -42,8 +58,8 @@ class LocationRead(LocationBase):
 class MovieBase(BaseModel):
     title: str
     year: int
-    director: str
-    genre: str
+    directors: list[str] = []
+    genres: list[str] = []
     imdb_id: Optional[str] = None
 
 
@@ -54,13 +70,24 @@ class MovieCreate(MovieBase):
 class MovieUpdate(BaseModel):
     title: Optional[str] = None
     year: Optional[int] = None
-    director: Optional[str] = None
-    genre: Optional[str] = None
+    directors: Optional[list[str]] = None
+    genres: Optional[list[str]] = None
     imdb_id: Optional[str] = None
 
 
-class MovieRead(MovieBase):
+class MovieSummary(BaseModel):
+    """Vista liviana de Movie (con directors/genres ya resueltos) para anidar en Location/MovieLocation sin recursión."""
     id: int
+    title: str
+    year: int
+    imdb_id: Optional[str] = None
+    directors: list[DirectorRead] = []
+    genres: list[GenreRead] = []
+
+    model_config = {"from_attributes": True}
+
+
+class MovieRead(MovieSummary):
     created_at: datetime
     locations: list[LocationRead] = []
 
@@ -79,7 +106,7 @@ class MovieLocationCreate(BaseModel):
 class MovieLocationRead(MovieLocationCreate):
     id: int
     created_at: datetime
-    movie: Optional[MovieBase] = None
+    movie: Optional[MovieSummary] = None
     location: Optional[LocationBase] = None
 
     model_config = {"from_attributes": True}

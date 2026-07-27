@@ -31,11 +31,11 @@ def test_filter_by_title(client):
 
 
 def test_filter_by_genre(client):
-    make_movie(client, title="Movie A", genre="Drama")
-    make_movie(client, title="Movie B", genre="Comedy")
+    make_movie(client, title="Movie A", genres=["Drama"])
+    make_movie(client, title="Movie B", genres=["Comedy"])
     r = client.get("/movies/?genre=drama")
     assert r.status_code == 200
-    assert all(m["genre"] == "Drama" for m in r.json())
+    assert all("Drama" in [g["name"] for g in m["genres"]] for m in r.json())
 
 
 def test_get_movie(client):

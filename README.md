@@ -77,10 +77,21 @@ movie_location/
 | `id` | Integer | Clave primaria |
 | `title` | String | Título único |
 | `year` | Integer | Año de estreno |
-| `director` | String | Director |
-| `genre` | String | Género |
-| `imdb_id` | String | ID de IMDb (opcional) |
+| `directors` | list[Director] | Directores (relación muchos-a-muchos) |
+| `genres` | list[Genre] | Géneros (relación muchos-a-muchos) |
+| `imdb_id` | String | ID de IMDb (único, opcional) |
 | `created_at` | DateTime | Fecha de creación |
+
+En `POST`/`PUT` se envían como listas de nombres (`directors: ["Christopher Nolan"]`,
+`genres: ["Drama", "Sci-Fi"]`); la API resuelve o crea los registros de `Director`/`Genre`
+correspondientes (get-or-create por nombre único).
+
+### Director / Genre
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `id` | Integer | Clave primaria |
+| `name` | String | Nombre único |
 
 ### Location
 
@@ -95,6 +106,10 @@ movie_location/
 | `longitude` | Float | Longitud (opcional) |
 | `description` | String | Descripción (opcional) |
 | `created_at` | DateTime | Fecha de creación |
+
+> `source_text` (interno, no expuesto en la API) guarda el string crudo de `filming_locations`
+> del CSV de origen cuando la locación viene del pipeline de `movie_location_data_cl`; es la
+> clave natural que usa el loader para hacer upsert sin duplicar ni re-geocodificar.
 
 ### MovieLocation
 

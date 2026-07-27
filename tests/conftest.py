@@ -52,7 +52,7 @@ def client(db):
 # ── Factories ─────────────────────────────────────────────────────────────────
 
 def make_movie(client, **kwargs):
-    data = {"title": "Test Movie", "year": 2020, "director": "Director", "genre": "Drama", **kwargs}
+    data = {"title": "Test Movie", "year": 2020, "directors": ["Director"], "genres": ["Drama"], **kwargs}
     return client.post("/movies/", json=data)
 
 

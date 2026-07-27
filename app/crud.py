@@ -2,6 +2,28 @@ from sqlalchemy.orm import Session
 from . import models, schemas
 
 
+# ── Directors / Genres ────────────────────────────────────────────────────────
+
+def get_or_create_director(db: Session, name: str) -> models.Director:
+    director = db.query(models.Director).filter(models.Director.name == name).first()
+    if director:
+        return director
+    director = models.Director(name=name)
+    db.add(director)
+    db.flush()  # asigna id para poder resolver nombres repetidos dentro del mismo request
+    return director
+
+
+def get_or_create_genre(db: Session, name: str) -> models.Genre:
+    genre = db.query(models.Genre).filter(models.Genre.name == name).first()
+    if genre:
+        return genre
+    genre = models.Genre(name=name)
+    db.add(genre)
+    db.flush()
+    return genre
+
+
 # ── Movies ────────────────────────────────────────────────────────────────────
 
 def get_movies(db: Session, title: str | None = None, genre: str | None = None, skip: int = 0, limit: int = 100):
@@ -9,7 +31,7 @@ def get_movies(db: Session, title: str | None = None, genre: str | None = None, 
     if title:
         q = q.filter(models.Movie.title.ilike(f"%{title}%"))
     if genre:
-        q = q.filter(models.Movie.genre.ilike(f"%{genre}%"))
+        q = q.join(models.Movie.genres).filter(models.Genre.name.ilike(f"%{genre}%")).distinct()
     return q.offset(skip).limit(limit).all()
 
 
@@ -18,8 +40,10 @@ def get_movie(db: Session, movie_id: int):
 
 
 def create_movie(db: Session, movie: schemas.MovieCreate):
-    db_movie = models.Movie(**movie.model_dump())
+    db_movie = models.Movie(title=movie.title, year=movie.year, imdb_id=movie.imdb_id)
     db.add(db_movie)
+    db_movie.directors = [get_or_create_director(db, name) for name in movie.directors]
+    db_movie.genres = [get_or_create_genre(db, name) for name in movie.genres]
     db.commit()
     db.refresh(db_movie)
     return db_movie
@@ -29,7 +53,12 @@ def update_movie(db: Session, movie_id: int, movie: schemas.MovieUpdate):
     db_movie = get_movie(db, movie_id)
     if not db_movie:
         return None
-    for key, value in movie.model_dump(exclude_unset=True).items():
+    data = movie.model_dump(exclude_unset=True)
+    if "directors" in data:
+        db_movie.directors = [get_or_create_director(db, name) for name in data.pop("directors")]
+    if "genres" in data:
+        db_movie.genres = [get_or_create_genre(db, name) for name in data.pop("genres")]
+    for key, value in data.items():
         setattr(db_movie, key, value)
     db.commit()
     db.refresh(db_movie)

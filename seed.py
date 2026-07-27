@@ -1,17 +1,26 @@
 from app.database import SessionLocal, engine
 from app.models import Base, Movie, Location, MovieLocation
+from app.crud import get_or_create_director, get_or_create_genre
 
 Base.metadata.create_all(bind=engine)
 
 db = SessionLocal()
 
-movies = [
-    Movie(title="The Dark Knight", year=2008, director="Christopher Nolan", genre="Acción", imdb_id="tt0468569"),
-    Movie(title="Inception", year=2010, director="Christopher Nolan", genre="Ciencia Ficción", imdb_id="tt1375666"),
-    Movie(title="The Godfather", year=1972, director="Francis Ford Coppola", genre="Drama", imdb_id="tt0068646"),
-    Movie(title="Interstellar", year=2014, director="Christopher Nolan", genre="Ciencia Ficción", imdb_id="tt0816692"),
-    Movie(title="Gladiator", year=2000, director="Ridley Scott", genre="Acción", imdb_id="tt0172495"),
+movie_data = [
+    dict(title="The Dark Knight", year=2008, directors=["Christopher Nolan"], genres=["Acción"], imdb_id="tt0468569"),
+    dict(title="Inception", year=2010, directors=["Christopher Nolan"], genres=["Ciencia Ficción"], imdb_id="tt1375666"),
+    dict(title="The Godfather", year=1972, directors=["Francis Ford Coppola"], genres=["Drama"], imdb_id="tt0068646"),
+    dict(title="Interstellar", year=2014, directors=["Christopher Nolan"], genres=["Ciencia Ficción"], imdb_id="tt0816692"),
+    dict(title="Gladiator", year=2000, directors=["Ridley Scott"], genres=["Acción"], imdb_id="tt0172495"),
 ]
+
+movies = []
+for data in movie_data:
+    movie = Movie(title=data["title"], year=data["year"], imdb_id=data["imdb_id"])
+    db.add(movie)
+    movie.directors = [get_or_create_director(db, name) for name in data["directors"]]
+    movie.genres = [get_or_create_genre(db, name) for name in data["genres"]]
+    movies.append(movie)
 
 locations = [
     Location(name="Chicago Loop", location_type="exterior", city="Chicago", country="Estados Unidos",
