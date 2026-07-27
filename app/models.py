@@ -42,9 +42,9 @@ class Movie(Base):
     __tablename__ = "movies"
 
     id = Column(Integer, primary_key=True)
-    title = Column(String, unique=True, index=True)
+    title = Column(String, index=True)  # no único: distintas películas (remakes, etc.) pueden compartir título
     year = Column(Integer)
-    imdb_id = Column(String, unique=True, index=True, nullable=True)
+    imdb_id = Column(String, unique=True, index=True, nullable=True)  # clave natural real
     created_at = Column(DateTime, default=datetime.utcnow)
 
     directors = relationship("Director", secondary=movie_director, back_populates="movies")

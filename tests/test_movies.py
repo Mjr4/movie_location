@@ -8,8 +8,10 @@ def test_create_movie(client):
 
 
 def test_create_movie_duplicate(client):
-    make_movie(client, title="Inception")
-    r = make_movie(client, title="Inception")
+    # El título ya no es único (puede haber remakes con el mismo nombre);
+    # la clave natural real es imdb_id.
+    make_movie(client, title="Inception", imdb_id="tt1375666")
+    r = make_movie(client, title="Otra película", imdb_id="tt1375666")
     assert r.status_code == 409
 
 
