@@ -7,8 +7,8 @@ from typing import Optional
 
 class LocationBase(BaseModel):
     name: str
-    location_type: str  # exterior / interior / mixto
-    city: str
+    location_type: Optional[str] = None  # exterior / interior / mixto (no siempre disponible: ver locaciones geocodificadas)
+    city: Optional[str] = None  # el geocoding a veces solo resuelve país/región, sin ciudad
     country: str
     latitude: Optional[float] = None
     longitude: Optional[float] = None
