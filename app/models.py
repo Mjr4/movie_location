@@ -68,8 +68,14 @@ class Location(Base):
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     description = Column(String, nullable=True)
-    source_text = Column(String, unique=True, nullable=True)  # string crudo del CSV de origen (clave del loader)
+    source_text = Column(String, nullable=True)  # string crudo (uno de los orígenes); ya no es único porque varios strings distintos pueden geocodificar al mismo lugar
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    # clave natural real: coordenadas resueltas por geocoding (varios source_text distintos
+    # pueden apuntar al mismo lugar real, ej. "London, UK" y "London, UK (Studio)"). NULL en
+    # ambas columnas no viola la constraint (semántica UNIQUE de SQLite), así que locaciones
+    # creadas a mano sin coordenadas siguen sin restricción.
+    __table_args__ = (UniqueConstraint("latitude", "longitude", name="uq_location_coords"),)
 
     movies = relationship(
         "Movie",
