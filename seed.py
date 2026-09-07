@@ -23,17 +23,17 @@ for data in movie_data:
     movies.append(movie)
 
 locations = [
-    Location(name="Chicago Loop", location_type="exterior", city="Chicago", country="Estados Unidos",
+    Location(name="Chicago Loop", location_type="exterior", city="Chicago", country="United States",
               latitude=41.8827, longitude=-87.6233, description="Centro financiero de Chicago"),
-    Location(name="Battersea Power Station", location_type="exterior", city="Londres", country="Reino Unido",
+    Location(name="Battersea Power Station", location_type="exterior", city="Londres", country="United Kingdom",
               latitude=51.4836, longitude=-0.1449, description="Central eléctrica icónica a orillas del Támesis"),
-    Location(name="Pinewood Studios", location_type="interior", city="Buckinghamshire", country="Reino Unido",
+    Location(name="Pinewood Studios", location_type="interior", city="Buckinghamshire", country="United Kingdom",
               latitude=51.5466, longitude=-0.5413, description="Estudios cinematográficos históricos"),
-    Location(name="Staten Island", location_type="exterior", city="Nueva York", country="Estados Unidos",
+    Location(name="Staten Island", location_type="exterior", city="Nueva York", country="United States",
               latitude=40.5795, longitude=-74.1502, description="Barrio de Nueva York"),
-    Location(name="Museo di Palazzo Ducale", location_type="exterior", city="Génova", country="Italia",
+    Location(name="Museo di Palazzo Ducale", location_type="exterior", city="Génova", country="Italy",
               latitude=44.4056, longitude=8.9463, description="Palacio ducal usado para escenas de época"),
-    Location(name="Wadi Rum", location_type="exterior", city="Wadi Rum", country="Jordania",
+    Location(name="Wadi Rum", location_type="exterior", city="Wadi Rum", country="Jordan",
               latitude=29.5760, longitude=35.4157, description="Desierto de arena roja usado como planeta alienígena"),
     Location(name="Fort Ricasoli", location_type="exterior", city="Kalkara", country="Malta",
               latitude=35.8939, longitude=14.5353, description="Fortaleza del siglo XVII usada como Roma antigua"),
