@@ -49,11 +49,6 @@ uvicorn app.main:app --reload
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-```bash
-# Poblar la base de datos con datos de ejemplo
-python seed.py
-```
-
 La API queda disponible en `http://localhost:8000`.
 Documentación interactiva (Swagger UI): `http://localhost:8000/docs`
 Documentación alternativa (ReDoc): `http://localhost:8000/redoc`
@@ -73,7 +68,6 @@ movie_location/
 │   ├── schemas.py
 │   ├── database.py
 │   └── config.py
-├── seed.py
 ├── requirements.txt
 └── .env
 ```
