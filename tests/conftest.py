@@ -4,11 +4,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app import config
 from app.main import app
 from app.database import get_db
 from app.models import Base
 
 SQLALCHEMY_TEST_URL = "sqlite://"  # in-memory
+TEST_API_KEY = "test-key"
 
 engine = create_engine(
     SQLALCHEMY_TEST_URL,
@@ -34,8 +36,13 @@ def db():
         session.close()
 
 
+@pytest.fixture(autouse=True)
+def api_keys(monkeypatch):
+    monkeypatch.setattr(config, "API_KEYS", {TEST_API_KEY})
+
+
 @pytest.fixture
-def client(db):
+def _override_db(db):
     def override_get_db():
         try:
             yield db
@@ -44,9 +51,22 @@ def client(db):
             raise
 
     app.dependency_overrides[get_db] = override_get_db
+    yield
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def client(_override_db):
+    """Cliente autenticado: envía X-API-Key en todas las requests."""
+    with TestClient(app, headers={"X-API-Key": TEST_API_KEY}) as c:
+        yield c
+
+
+@pytest.fixture
+def anon_client(_override_db):
+    """Cliente sin credenciales, para verificar que las escrituras se rechazan."""
     with TestClient(app) as c:
         yield c
-    app.dependency_overrides.clear()
 
 
 # ── Factories ─────────────────────────────────────────────────────────────────

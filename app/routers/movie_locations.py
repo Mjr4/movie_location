@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from ..auth import require_api_key
 from ..database import get_db
 from .. import crud, schemas
 
@@ -12,7 +13,7 @@ def list_movie_locations(skip: int = 0, limit: int = 100, db: Session = Depends(
     return crud.get_movie_locations(db, skip=skip, limit=limit)
 
 
-@router.post("/", response_model=schemas.MovieLocationRead, status_code=201)
+@router.post("/", response_model=schemas.MovieLocationRead, status_code=201, dependencies=[Depends(require_api_key)])
 def create_movie_location(data: schemas.MovieLocationCreate, db: Session = Depends(get_db)):
     if not crud.get_movie(db, data.movie_id):
         raise HTTPException(status_code=404, detail=f"Película con id {data.movie_id} no encontrada")
@@ -21,7 +22,7 @@ def create_movie_location(data: schemas.MovieLocationCreate, db: Session = Depen
     return crud.create_movie_location(db, data)
 
 
-@router.delete("/{movie_location_id}", status_code=204)
+@router.delete("/{movie_location_id}", status_code=204, dependencies=[Depends(require_api_key)])
 def delete_movie_location(movie_location_id: int, db: Session = Depends(get_db)):
     db_ml = crud.delete_movie_location(db, movie_location_id)
     if not db_ml:

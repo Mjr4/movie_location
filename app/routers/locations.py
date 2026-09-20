@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import Optional
 
+from ..auth import require_api_key
 from ..database import get_db
 from .. import crud, schemas
 
@@ -21,7 +22,7 @@ def list_locations(
     return crud.get_locations(db, city=city, country=country, type=type, skip=skip, limit=limit)
 
 
-@router.post("/", response_model=schemas.LocationRead, status_code=201)
+@router.post("/", response_model=schemas.LocationRead, status_code=201, dependencies=[Depends(require_api_key)])
 def create_location(location: schemas.LocationCreate, db: Session = Depends(get_db)):
     return crud.create_location(db, location)
 
@@ -34,7 +35,7 @@ def get_location(location_id: int, db: Session = Depends(get_db)):
     return db_location
 
 
-@router.put("/{location_id}", response_model=schemas.LocationRead)
+@router.put("/{location_id}", response_model=schemas.LocationRead, dependencies=[Depends(require_api_key)])
 def update_location(location_id: int, location: schemas.LocationUpdate, db: Session = Depends(get_db)):
     db_location = crud.update_location(db, location_id, location)
     if not db_location:
@@ -42,7 +43,7 @@ def update_location(location_id: int, location: schemas.LocationUpdate, db: Sess
     return db_location
 
 
-@router.delete("/{location_id}", status_code=204)
+@router.delete("/{location_id}", status_code=204, dependencies=[Depends(require_api_key)])
 def delete_location(location_id: int, db: Session = Depends(get_db)):
     db_location = crud.delete_location(db, location_id)
     if not db_location:

@@ -1,14 +1,22 @@
+import logging
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
+from . import config
 from .database import engine
 from .models import Base
 from .routers import movies, locations, movie_locations
 
+logger = logging.getLogger("uvicorn.error")
+
 Base.metadata.create_all(bind=engine)
+
+if not config.API_KEYS:
+    logger.warning("API_KEYS no está configurado: todos los endpoints de escritura responderán 401")
 
 app = FastAPI(title="Movie Locations API")
 

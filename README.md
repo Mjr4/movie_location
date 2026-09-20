@@ -28,6 +28,15 @@ Crea un archivo `.env` en la raíz del proyecto:
 
 ```env
 DATABASE_URL=sqlite:///./movie_locations.db
+API_KEYS=<key1>,<key2>
+```
+
+`API_KEYS` es una lista separada por comas de las keys válidas para los endpoints de escritura
+(una por cliente permite rotarlas sin downtime). Si no está definida, todas las escrituras
+responden `401` (la API falla cerrada). Para generar una key:
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
 ## Uso
@@ -59,6 +68,7 @@ movie_location/
 │   │   ├── locations.py
 │   │   └── movie_locations.py
 │   ├── main.py
+│   ├── auth.py
 │   ├── models.py
 │   ├── schemas.py
 │   ├── database.py
@@ -75,7 +85,7 @@ movie_location/
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
 | `id` | Integer | Clave primaria |
-| `title` | String | Título único |
+| `title` | String | Título (no único; la clave natural es `imdb_id`) |
 | `year` | Integer | Año de estreno |
 | `directors` | list[Director] | Directores (relación muchos-a-muchos) |
 | `genres` | list[Genre] | Géneros (relación muchos-a-muchos) |
@@ -126,7 +136,23 @@ Tabla de asociación entre películas y locaciones.
 
 > La combinación `(movie_id, location_id)` es única.
 
+## Autenticación
+
+Las lecturas (`GET`) son públicas. `POST`, `PUT` y `DELETE` requieren el header `X-API-Key`:
+
+```bash
+curl -X POST http://localhost:8000/movies/ \
+  -H "X-API-Key: <tu-key>" -H "Content-Type: application/json" \
+  -d '{"title": "Inception", "year": 2010}'
+```
+
+Sin key o con una inválida responde `401`. En Swagger UI (`/docs`) usa el botón **Authorize**.
+La key es un secreto de servidor: úsala desde scripts, el pipeline de datos o un backend, nunca
+la incluyas en un frontend público. Sirve la API solo por HTTPS en producción.
+
 ## Endpoints
+
+> Los métodos `POST`, `PUT` y `DELETE` de todas las secciones requieren `X-API-Key`.
 
 ### Películas — `/movies`
 
