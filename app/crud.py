@@ -158,3 +158,62 @@ def delete_movie_location(db: Session, movie_location_id: int):
     db.delete(db_ml)
     db.commit()
     return db_ml
+
+
+# ── Import ────────────────────────────────────────────────────────────────────
+
+def import_movies(db: Session, movies: list[schemas.ImportMovie]) -> dict[str, int]:
+    """Upsert idempotente de películas con sus locaciones, en una sola transacción.
+
+    Movie por imdb_id, Location por (latitude, longitude) exactos y MovieLocation aditiva.
+    Cada creación hace flush porque la sesión tiene autoflush=False y los ítems siguientes del
+    lote deben ver lo recién insertado. "updated"/"existing" significa que ya existía, haya
+    cambiado o no algún campo.
+    """
+    counts = dict.fromkeys(schemas.ImportResult.model_fields, 0)
+
+    for item in movies:
+        movie = db.query(models.Movie).filter(models.Movie.imdb_id == item.imdb_id).first()
+        if movie:
+            movie.title, movie.year = item.title, item.year
+            counts["movies_updated"] += 1
+        else:
+            movie = models.Movie(imdb_id=item.imdb_id, title=item.title, year=item.year)
+            db.add(movie)
+            counts["movies_created"] += 1
+        movie.directors = [get_or_create_director(db, name) for name in item.directors]
+        movie.genres = [get_or_create_genre(db, name) for name in item.genres]
+        db.flush()
+
+        for loc in item.locations:
+            location = (
+                db.query(models.Location)
+                .filter(models.Location.latitude == loc.latitude, models.Location.longitude == loc.longitude)
+                .first()
+            )
+            if location:
+                location.name, location.city, location.country = loc.name, loc.city, loc.country
+                counts["locations_updated"] += 1
+            else:
+                location = models.Location(
+                    name=loc.name, city=loc.city, country=loc.country,
+                    latitude=loc.latitude, longitude=loc.longitude, source_text=loc.source_text,
+                )
+                db.add(location)
+                counts["locations_created"] += 1
+            db.flush()
+
+            link = (
+                db.query(models.MovieLocation)
+                .filter(models.MovieLocation.movie_id == movie.id, models.MovieLocation.location_id == location.id)
+                .first()
+            )
+            if link:
+                counts["associations_existing"] += 1
+            else:
+                db.add(models.MovieLocation(movie_id=movie.id, location_id=location.id))
+                db.flush()
+                counts["associations_created"] += 1
+
+    db.commit()
+    return counts

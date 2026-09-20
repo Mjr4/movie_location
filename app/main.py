@@ -12,7 +12,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from . import config
 from .database import engine
 from .ratelimit import limiter, rate_limit_exceeded_handler
-from .routers import movies, locations, movie_locations
+from .routers import movies, locations, movie_locations, imports
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -71,6 +71,7 @@ async def validation_error_handler(request: Request, exc: RequestValidationError
 app.include_router(movies.router)
 app.include_router(locations.router)
 app.include_router(movie_locations.router)
+app.include_router(imports.router)
 
 
 @app.get("/")

@@ -13,6 +13,7 @@ WRITE_REQUESTS = [
     ("delete", "/locations/1", None),
     ("post", "/movie-locations/", {"movie_id": 1, "location_id": 1}),
     ("delete", "/movie-locations/1", None),
+    ("post", "/import/movies", {"movies": []}),
 ]
 
 

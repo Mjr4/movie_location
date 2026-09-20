@@ -1,6 +1,8 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
+
+from .config import MAX_IMPORT_BATCH
 
 
 # ── Location ──────────────────────────────────────────────────────────────────
@@ -110,3 +112,36 @@ class MovieLocationRead(MovieLocationCreate):
     location: Optional[LocationBase] = None
 
     model_config = {"from_attributes": True}
+
+
+# ── Import (carga masiva desde el pipeline) ──────────────────────────────────
+
+class ImportLocation(BaseModel):
+    name: str
+    city: Optional[str] = None
+    country: str
+    latitude: float = Field(ge=-90, le=90)  # clave natural junto con longitude
+    longitude: float = Field(ge=-180, le=180)
+    source_text: Optional[str] = None  # solo se escribe al insertar; no se expone en LocationRead
+
+
+class ImportMovie(BaseModel):
+    imdb_id: str = Field(min_length=1)  # clave natural de movies
+    title: str
+    year: int
+    directors: list[str] = []
+    genres: list[str] = []
+    locations: list[ImportLocation] = []
+
+
+class ImportRequest(BaseModel):
+    movies: list[ImportMovie] = Field(max_length=MAX_IMPORT_BATCH)
+
+
+class ImportResult(BaseModel):
+    movies_created: int
+    movies_updated: int
+    locations_created: int
+    locations_updated: int
+    associations_created: int
+    associations_existing: int

@@ -105,7 +105,8 @@ movie_location/
 │   ├── routers/
 │   │   ├── movies.py
 │   │   ├── locations.py
-│   │   └── movie_locations.py
+│   │   ├── movie_locations.py
+│   │   └── imports.py
 │   ├── main.py
 │   ├── auth.py
 │   ├── ratelimit.py
@@ -158,7 +159,8 @@ correspondientes (get-or-create por nombre único).
 
 > `source_text` (interno, no expuesto en la API) guarda el string crudo de `filming_locations`
 > del CSV de origen cuando la locación viene del pipeline de `movie_location_data_cl`; es la
-> clave natural que usa el loader para hacer upsert sin duplicar ni re-geocodificar.
+> clave natural que usa el loader para hacer upsert sin duplicar ni re-geocodificar. Se escribe
+> solo desde `POST /import/movies` y solo al insertar.
 
 ### MovieLocation
 
@@ -222,3 +224,40 @@ la incluyas en un frontend público. Sirve la API solo por HTTPS en producción.
 | `GET` | `/movie-locations/` | Listar asociaciones (`skip`, `limit`) |
 | `POST` | `/movie-locations/` | Crear asociación |
 | `DELETE` | `/movie-locations/{movie_location_id}` | Eliminar asociación |
+
+### Carga masiva — `/import`
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `POST` | `/import/movies` | Upsert idempotente de películas con sus locaciones (requiere `X-API-Key`) |
+
+Pensado para el pipeline de datos: un request procesa hasta 200 películas (más de eso responde `400`)
+y cuenta como un solo request para el límite de requests.
+
+```json
+{"movies": [{
+  "imdb_id": "tt0111161", "title": "The Shawshank Redemption", "year": 1994,
+  "directors": ["Frank Darabont"], "genres": ["Drama"],
+  "locations": [{"name": "Ohio State Reformatory", "city": "Mansfield", "country": "United States",
+                 "latitude": 40.7719, "longitude": -82.5115, "source_text": "Mansfield, Ohio, USA"}]
+}]}
+```
+
+- **Película**: se busca por `imdb_id` (requerido). Si existe, actualiza `title` y `year`; `directors` y
+  `genres` **reemplazan** el conjunto (igual que `PUT /movies/{id}`).
+- **Locación**: se busca por `latitude`/`longitude` (requeridos, comparación exacta de float, sin redondeo).
+  Si existe, actualiza `name`, `city` y `country`; `source_text` solo se escribe al insertar y nunca se pisa.
+  Si dos entradas comparten coordenadas gana la última del payload.
+- **Asociación**: se crea si no existe y **nunca borra** las que no vengan en el payload ni toca
+  `scene_description` / `notes`.
+- **Todo o nada**: un request es una transacción. Es idempotente: reenviar el mismo payload no crea filas,
+  así que se puede reintentar ante `429`, `503` o timeout. Una carrera concurrente puede dar `409` (reintentable).
+- **Errores de validación**: `400` con la ruta del dato inválido, por ejemplo `movies.3.locations.0.latitude`.
+- Un `imdb_id` repetido dentro del mismo lote se procesa en orden (la primera crea, la segunda actualiza).
+
+Responde `200` con los conteos del lote. "updated" y "existing" significan que ya existía, haya cambiado o no:
+
+```json
+{"movies_created": 1, "movies_updated": 0, "locations_created": 1, "locations_updated": 0,
+ "associations_created": 1, "associations_existing": 0}
+```
