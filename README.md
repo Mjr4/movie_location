@@ -39,6 +39,17 @@ responden `401` (la API falla cerrada). Para generar una key:
 python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
+## Límite de requests
+
+Cada IP tiene un tope de requests (lecturas y escrituras, incluidos los intentos con key inválida).
+Al superarlo responde `429` con el header `Retry-After`. Se configura con `RATE_LIMIT` en el `.env`
+(formato de [limits](https://limits.readthedocs.io/): `120/minute`, `10/second`, ...; default `120/minute`).
+
+El contador vive en memoria del proceso: si corres varios workers, cada uno cuenta por separado.
+Detrás de un proxy o load balancer, arranca uvicorn con `--proxy-headers --forwarded-allow-ips=<ip-del-proxy>`;
+si no, todas las requests parecen venir de la IP del proxy y comparten un solo contador.
+Esto frena a un cliente abusivo, no reemplaza la protección contra DDoS de red (CDN, proxy, firewall).
+
 ## Uso
 
 ```bash
@@ -64,6 +75,7 @@ movie_location/
 │   │   └── movie_locations.py
 │   ├── main.py
 │   ├── auth.py
+│   ├── ratelimit.py
 │   ├── models.py
 │   ├── schemas.py
 │   ├── database.py

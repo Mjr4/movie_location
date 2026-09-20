@@ -8,6 +8,7 @@ from app import config
 from app.main import app
 from app.database import get_db
 from app.models import Base
+from app.ratelimit import limiter
 
 SQLALCHEMY_TEST_URL = "sqlite://"  # in-memory
 TEST_API_KEY = "test-key"
@@ -39,6 +40,14 @@ def db():
 @pytest.fixture(autouse=True)
 def api_keys(monkeypatch):
     monkeypatch.setattr(config, "API_KEYS", {TEST_API_KEY})
+
+
+@pytest.fixture(autouse=True)
+def rate_limit(monkeypatch):
+    monkeypatch.setattr(config, "RATE_LIMIT", "1000/minute")
+    limiter.reset()
+    yield
+    limiter.reset()
 
 
 @pytest.fixture
