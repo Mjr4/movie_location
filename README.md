@@ -7,6 +7,7 @@ API REST construida con FastAPI para gestionar locaciones de filmación de pelí
 - **FastAPI** — framework web
 - **SQLAlchemy** — ORM
 - **SQLite** — base de datos
+- **Alembic** — migraciones del esquema
 - **Pydantic** — validación de datos
 - **Uvicorn** — servidor ASGI
 - **python-dotenv** — configuración por variables de entorno
@@ -39,6 +40,35 @@ responden `401` (la API falla cerrada). Para generar una key:
 python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
+## Migraciones
+
+El esquema de la base lo gestiona [Alembic](https://alembic.sqlalchemy.org/); la app ya no crea tablas al
+arrancar. Antes del primer uso (y después de cada `git pull` con migraciones nuevas):
+
+```bash
+alembic upgrade head
+```
+
+**Base creada antes de Alembic** (con datos): haz una copia del `.db` y "adóptala" en vez de recrearla.
+`stamp` solo marca la versión inicial sin tocar datos; `upgrade` aplica el resto (renombra una constraint):
+
+```bash
+cp movie_locations.db movie_locations.db.bak
+alembic stamp a442bfbadc16
+alembic upgrade head
+```
+
+**Cambiar el esquema**: edita `app/models.py`, genera la migración, revísala y aplícala:
+
+```bash
+alembic revision --autogenerate -m "descripción del cambio"
+alembic upgrade head
+```
+
+`alembic check` avisa si los modelos y las migraciones se desincronizaron (también lo verifica un test).
+SQLite no soporta la mayoría de `ALTER TABLE`, por eso `alembic/env.py` usa modo `batch` (recrea la tabla).
+Conviene darle nombre explícito a las constraints nuevas: una constraint sin nombre no se puede eliminar por nombre.
+
 ## Límite de requests
 
 Cada IP tiene un tope de requests (lecturas y escrituras, incluidos los intentos con key inválida).
@@ -68,6 +98,9 @@ Documentación alternativa (ReDoc): `http://localhost:8000/redoc`
 
 ```
 movie_location/
+├── alembic/
+│   └── versions/
+├── alembic.ini
 ├── app/
 │   ├── routers/
 │   │   ├── movies.py

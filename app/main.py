@@ -6,17 +6,18 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
+from sqlalchemy import inspect
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from . import config
 from .database import engine
-from .models import Base
 from .ratelimit import limiter, rate_limit_exceeded_handler
 from .routers import movies, locations, movie_locations
 
 logger = logging.getLogger("uvicorn.error")
 
-Base.metadata.create_all(bind=engine)
+if "alembic_version" not in inspect(engine).get_table_names():
+    logger.warning("La base no está migrada: ejecuta `alembic upgrade head` antes de usar la API")
 
 if not config.API_KEYS:
     logger.warning("API_KEYS no está configurado: todos los endpoints de escritura responderán 401")
