@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from ..auth import require_api_key
+from ..config import MAX_PAGE_SIZE
 from ..database import get_db
 from .. import crud, schemas
 
@@ -9,7 +10,7 @@ router = APIRouter(prefix="/movie-locations", tags=["movie-locations"])
 
 
 @router.get("/", response_model=list[schemas.MovieLocationRead])
-def list_movie_locations(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def list_movie_locations(skip: int = 0, limit: int = Query(100, ge=1, le=MAX_PAGE_SIZE), db: Session = Depends(get_db)):
     return crud.get_movie_locations(db, skip=skip, limit=limit)
 
 

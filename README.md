@@ -159,6 +159,8 @@ la incluyas en un frontend público. Sirve la API solo por HTTPS en producción.
 ## Endpoints
 
 > Los métodos `POST`, `PUT` y `DELETE` de todas las secciones requieren `X-API-Key`.
+>
+> En los listados, `limit` va de 1 a 500 (default 100); fuera de ese rango responde `400`.
 
 ### Películas — `/movies`
 

@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional
 
 from ..auth import require_api_key
+from ..config import MAX_PAGE_SIZE
 from ..database import get_db
 from .. import crud, schemas
 
@@ -10,7 +11,7 @@ router = APIRouter(prefix="/movies", tags=["movies"])
 
 
 @router.get("/", response_model=list[schemas.MovieRead])
-def list_movies(title: Optional[str] = None, genre: Optional[str] = None, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def list_movies(title: Optional[str] = None, genre: Optional[str] = None, skip: int = 0, limit: int = Query(100, ge=1, le=MAX_PAGE_SIZE), db: Session = Depends(get_db)):
     return crud.get_movies(db, title=title, genre=genre, skip=skip, limit=limit)
 
 

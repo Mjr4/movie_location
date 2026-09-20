@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional
 
 from ..auth import require_api_key
+from ..config import MAX_PAGE_SIZE
 from ..database import get_db
 from .. import crud, schemas
 
@@ -15,7 +16,7 @@ def list_locations(
     country: Optional[str] = None,
     type: Optional[str] = None,  # Filtro por tipo de locación (exterior/interior/mixto)
     skip: int = 0,
-    limit: int = 100,
+    limit: int = Query(100, ge=1, le=MAX_PAGE_SIZE),
     db: Session = Depends(get_db),
 ):
     # Retorna listado de locaciones con filtros opcionales
