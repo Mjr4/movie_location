@@ -5,3 +5,4 @@ uvicorn[standard]
 python-dotenv
 slowapi
 alembic
+psycopg2-binary
