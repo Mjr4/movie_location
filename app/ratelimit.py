@@ -10,7 +10,9 @@ from . import config
 parse(config.RATE_LIMIT)  # falla al arrancar si RATE_LIMIT es inválido, no en la primera request
 
 # El límite se lee en cada request (callable) para poder sobreescribirlo en tests.
-# La key es request.client.host: detrás de un proxy hay que arrancar uvicorn con --proxy-headers.
+# La key es request.client.host: detrás de un proxy (ej. Railway), uvicorn necesita
+# --forwarded-allow-ips='*' para tomar la IP real de X-Forwarded-For en vez de la del
+# proxy (proxy_headers ya viene activado por default, pero forwarded_allow_ips no).
 limiter = Limiter(
     key_func=get_remote_address,
     default_limits=[lambda: config.RATE_LIMIT],
