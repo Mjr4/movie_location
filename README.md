@@ -261,3 +261,7 @@ Responde `200` con los conteos del lote. "updated" y "existing" significan que y
 {"movies_created": 1, "movies_updated": 0, "locations_created": 1, "locations_updated": 0,
  "associations_created": 1, "associations_existing": 0}
 ```
+
+## Licencia
+
+MIT — ver [LICENSE](LICENSE).
